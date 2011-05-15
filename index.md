@@ -3,10 +3,6 @@ title: The Aura Web Context
 layout: default
 ---
 
-Introduction
-============
-
-
 Aura Web Context
 ==================
 
