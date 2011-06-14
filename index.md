@@ -11,12 +11,12 @@ Basic Usage
 
 ### Instantiating a Web Context.
 
-The easiest way to do this is to call the `aura.web/scripts/instance.php` script.
+The easiest way to do this is to call the `Aura.Web/scripts/instance.php` script.
 
-    $webcontext = require '/path/to/aura.web/scripts/instance.php';
+    $webcontext = require '/path/to/Aura.Web/scripts/instance.php';
 
 **NOTE:** 
-If the variables `$csrf_secret_key` and `$csrf_user_id` are not defined before calling `aura.web/scripts/instance.php` CSRF testing will not be avaliable. A call to `aura\web\Context->isCsrf()` will cause the exception `aura\web\Exception_Context`.
+If the variables `$csrf_secret_key` and `$csrf_user_id` are not defined before calling `Aura.Web/scripts/instance.php` CSRF testing will not be avaliable. A call to `Aura\Web\Context->isCsrf()` will cause the exception `Aura\Web\Exception_Context`.
 
 ### Fetching data
 
@@ -159,10 +159,10 @@ Usage
 
 ### Creating a standalone aura\web\Csrf instance:
     
-    use aura\web\Csrf as Csrf;
+    use Aura\Web\Csrf as Csrf;
     
-    require '/path/to/aura.web/Csrf.php';
-    require '/path/to/aura.web/Exception/MalformedToken.php';
+    require '/path/to/Aura.Web/Csrf.php';
+    require '/path/to/Aura.Web/Exception/MalformedToken.php';
     
     $server_secret = 'my-random-secret';
     $user_id       = $user->getEmail();
