@@ -98,7 +98,7 @@ The result is an array; the array key is the accept-value and the array value is
 
 Magic Quotes
 ------------
-As of PHP 5.3 magic quotes have been deprecated and disabled by default. `aura\web\Context` does not test for or remove magic quotes.
+As of PHP 5.3 magic quotes have been deprecated and disabled by default. `Aura\Web\Context` does not test for or remove magic quotes.
 
 
 Advanced Usage
@@ -142,7 +142,7 @@ Aura Web Csrf
 ================
 A library to generate and validate CSRF tokens.
 
-`aura\web\Csrf` has two required __construct arguments:
+`Aura\Web\Csrf` has two required __construct arguments:
 
   1. **$secret_key:** A random and project specific key. It should not change between requests.
 
