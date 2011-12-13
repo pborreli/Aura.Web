@@ -1,10 +1,13 @@
 ---
-title: The Aura Web Context
+title: The Aura.Web Package
 layout: default
 ---
 
 Aura Web Context
-==================
+================
+
+For now, this document only details the `Context` objects. Information on the `Page` and `ResponseTransfer` objects will be forthcoming.
+
 
 Basic Usage
 -----------
