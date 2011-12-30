@@ -35,7 +35,7 @@ All get* methods have two arguments `$key` and `$alt`. If the `$key` is null the
     getServer($key, $alt = null)
     getCookie($key, $alt = null)
     getEnv($key, $alt = null)
-    getheader($key, $alt = null)
+    getHeader($key, $alt = null)
     getAccept($key, $alt = null)
 
 
@@ -59,7 +59,7 @@ All get* methods have two arguments `$key` and `$alt`. If the `$key` is null the
     // The page key does not exist, null is returned
     var_dump($webcontext->getQuery('page'));
 
-    // The page key does not exist, alt is returned
+    // The page key does not exist, alt is returned, in the below case 1.
     echo $webcontext->getQuery('page', 1);
 
     // fetch entire query
@@ -140,6 +140,8 @@ Use `X-HTTP-Method-Override` as the key. **Note:** the key is case sensitive.
 
 
 -----------------------------------------------
+
+Note : Currently the Aura Web Csrf is on hold. We may move to Security or Validation component.
 
 Aura Web Csrf
 ================
