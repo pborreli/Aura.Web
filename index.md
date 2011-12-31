@@ -1,199 +1,221 @@
 ---
-title: The Aura.Web Package
+title: Aura for PHP: Web Page Controllers
 layout: default
 ---
 
-Aura Web Context
-================
+Aura Web
+========
 
-For now, this document only details the `Context` objects. Information on the `Page` and `ResponseTransfer` objects will be forthcoming.
+The Aura Web package provides tools to build web page controllers, including an `AbstractPage` for action methods, a `Context` class for disovering the request environment, and a `Response` transfer object that describes the eventual HTTP response. (Note that the `Response` transfer object is not itself an HTTP response.)
 
+The Aura Web package has no dependencies, and does not impose any particular routing or rendering system on the developer.
 
-Basic Usage
------------
 
-### Instantiating a Web Context.
+Getting Started
+===============
 
-The easiest way to do this is to call the `Aura.Web/scripts/instance.php` script.
+Instantiation
+-------------
 
-    $webcontext = require '/path/to/Aura.Web/scripts/instance.php';
+Most Aura packages allow you to instantiate an object by including a particular file. This is not the case with Aura Web.  Because page controllers are so specific to the logic of your particular needs, you will have to extend the `AbstractPage` class yourself and add action methods for your own purposes.
 
-**NOTE:** 
-If the variables `$csrf_secret_key` and `$csrf_user_id` are not defined before calling `Aura.Web/scripts/instance.php` CSRF testing will not be avaliable. A call to `Aura\Web\Context->isCsrf()` will cause the exception `Aura\Web\Exception_Context`.
+First, either include the the `Aura.Web/src.php` file to load the package classes, or add the `Aura.Web/src/` directory to your autoloader.
 
-### Fetching data
+Next, create a page controller class of your own, extending the `AbstractPage` class:
 
-**IMPORTANT:** 
-All values returned by the get* methods and the public properties are from an untrusted source. These tainted values have not been filtered or sanitized in any way.
-
-All get* methods have two arguments `$key` and `$alt`. If the `$key` is null the whole array is returned. `$alt` is returned if the `$key` does not exist and by default `$alt` is null.
-    
-#### get* methods:
-
-    getQuery($key, $alt = null)
-    getInput($key, $alt = null)
-    getServer($key, $alt = null)
-    getCookie($key, $alt = null)
-    getEnv($key, $alt = null)
-    getHeader($key, $alt = null)
-    getAccept($key, $alt = null)
-
-
-#### Avaliable properties:
-
-    get
-    post
-    cookies
-    server
-    env
-    files
-    header
-
-
-### Fetching a get value:
-
-    // example query: ?id=101&sort=desc
-
-    echo $webcontext->getQuery('id');
-    
-    // The page key does not exist, null is returned
-    var_dump($webcontext->getQuery('page'));
-
-    // The page key does not exist, alt is returned, in the below case 1.
-    echo $webcontext->getQuery('page', 1);
-
-    // fetch entire query
-    print_r($webcontext->getQuery());
-
-#### Results:
-
-    101
-    null
-    1
-    array('id' => 101, 'sort' => 'desc')
-
-### Fetching user submitted data:
-User submitted data is a combination of `$post[key]` and `$files[key]` with files taking precedence over post.
-
-    $comment = $webcontext->getInput('comment');
-
-### Fetching a header:
-All header keys are lowercase with dashes.
-
-    $type = $webcontext->getHeader('content-type');
-
-### Fetching an accept header.
-If you want the content-type, ask for `type`; otherwise, if you want (e.g.) 'Accept-Language', ask for `language`.
-
-    // Accept-Language: en;q=0.7, en-US
-    $lang = $webcontext->getAccept('language');
-    print_r($lang);
-
-The result is an array; the array key is the accept-value and the array value is the quality factor. The results are sorted by the quality factor, the first result has the highest quality factor.
-
-#### Example results:
-
-    array(
-        'en-US' => 1.0,
-        'en'    => 0.7,
-    )
-
-
-Magic Quotes
-------------
-As of PHP 5.3 magic quotes have been deprecated and disabled by default. `Aura\Web\Context` does not test for or remove magic quotes.
-
-
-Advanced Usage
---------------
-
-### Receiving a json, xml or other content type input
-
-If the content-type is not `multipart/form-data` and `$key = null` the raw input from a POST or PUT request is returned without any processing as a string.
-
-#### A POST or PUT example with a text/xml content-type:
-
-    $xml = $webcontext->getInput();
-    echo $xml;
-
-#### Result:
-
-    <xml>
-        <value>Hello world!</value>
-    </xml>
-
-
-### Overriding the HTTP request method
-The HTTP request method can be overridden with a header or post key. If header *and* post have `X-HTTP-Method-Override` set the header value takes precedence. 
-
-#### Header example:
-
-    header('X-HTTP-Method-Override: PUT');
-
-#### POST example:
-Use `X-HTTP-Method-Override` as the key. **Note:** the key is case sensitive.
-
-    <form action="/Comment/1" method="post">
-        <input type="image" src="/images/remove-icon.png" alt="Delete" />
-        <input name="X-HTTP-Method-Override" type="hidden" value="DELETE" />
-    </form>
-
-
------------------------------------------------
-
-Note : Currently the Aura Web Csrf is on hold. We may move to Security or Validation component.
-
-Aura Web Csrf
-================
-A library to generate and validate CSRF tokens.
-
-`Aura\Web\Csrf` has two required __construct arguments:
-
-  1. **$secret_key:** A random and project specific key. It should not change between requests.
-
-  2. **$user_id:** Something unique to the user that does not change between requests. For example an email address or the primary key from the users table, anything that is unique to the user, **except** for passwords will do.
-
-And two optional arguments:
-
-  1. **$timeout:** The time in seconds before a token expires. The default is 1800 seconds.
-
-  2. **$hash_algo:** Hashing algorithm see [hash_algos()](http://php.net/hash_algos) for a list of registered hashing algorithms. The default is sha1.
-
-Usage
------
-
-### Creating a standalone aura\web\Csrf instance:
-    
-    use Aura\Web\Csrf as Csrf;
-    
-    require '/path/to/Aura.Web/Csrf.php';
-    require '/path/to/Aura.Web/Exception/MalformedToken.php';
-    
-    $server_secret = 'my-random-secret';
-    $user_id       = $user->getEmail();
-
-    $csrf = new Csrf($server_secret, $user_id);
-    
-### Generating a token:
-
-    $token = $csrf->generateToken();
-    echo $token;
-
-#### Example result:
-
-    5199173921e7cc91dbee3145088af35e22df1d3|1299425613|2648677304d73a94de97218.48580521
-
-### Validating a token:
-
-    try {
-        if ($csrf->isValidToken($_POST['__csrf_token'])) {
-            echo 'Not a CSRF attack.';
-        } else {
-            echo 'Invalid CSRF token.
-            exit();
-        }
-    } catch (Exception_MalformedToken $e) {
-        echo 'Malformed CSRF token.';
-        exit();
+    <?php
+    namespace Vendor\Package\Web;
+    use Aura\Web\AbstractPage;
+    class Page extends AbstractPage
+    {
+        
     }
 
+To instantiate the page controller class, you will need to pass it a `Context`  and a `Response` transfer object as dependencies.
+
+    <?php
+    use Vendor\Package\Web\Page;
+    use Aura\Web\Context;
+    use Aura\Web\Response;
+    $page = new Page(new Context, new Response);
+    
+If you have a dependency injection mechanism, you can automate the the creation and injection of the dependency objects.  The [Aura.Di][] package is one such system.
+
+
+The Execution Cycle
+-------------------
+
+The heart of the page controller is its execution cycle.  You invoke the page controller by calling `exec()` and passing it an array of parameters.  These will determine what action method is called, what the parameters for that method will be, and what rendering format is expected.  The return value is a `Response` transfer object describing how to build your HTTP response.
+
+    <?php
+    use Vendor\Package\Web\Page;
+    use Aura\Web\Context;
+    use Aura\Web\Response;
+    
+    $params = [
+        'action' => 'hello',
+        'format' => '.html',
+        'noun'   => 'world',
+    ];
+    
+    $page = new Page(new Context, new Response, $params);
+    
+    $response = $page->exec();
+
+The parameters are generally retrieved from a routing mechanism of some sort, such as the one provided by the [Aura.Router][] package.
+
+Internally, the `exec()` cycle runs ...
+
+- A `preExec()` hook to let you set up the object,
+- A `preAction()` hook to prepare for the action,
+- The `action()` method to invoke the method determined by the `'action'` param value
+- A `postAction()` hook,
+- A `preRender()` hook to prepare for rendering,
+- The `render()` method to render a presentation (this is up to the developer to create),
+- A `postRender()` hook, and
+- A `postExec()` hook.
+
+At the end of this, the `exec()` method returns a `Response` transfer object.  Note that the `Response` object is not an HTTP response proper; it is a data transfer object that has information on how to build an HTTP response.  You would need to inspect the `Response` object and use that information to build an HTTP response of your own.  (The [Aura.Http][] package provides an HTTP response object proper.)
+
+
+Action Methods
+--------------
+
+At this point, calling `exec()` on the page controller will do nothing, because there are no corresponding action methods.  To add an action method to the page controller, create it as a method named `action*()` with any parameters it needs:
+
+    <?php
+    namespace Vendor\Package\Web;
+    use Aura\Web\AbstractPage;
+    class Page extends AbstractPage
+    {
+        protected function actionHello($noun = null)
+        {
+            $noun = htmlspecialchars($noun, ENT_QUOTES, 'UTF-8');
+            $content = "Hello, {$noun}!";
+            $this->response->setContent($content);
+        }
+    }
+    
+Now when you call `$page->exec()` as above, you will find that the `Response` transfer object has some content in it.
+
+    <?php
+    use Vendor\Package\Web\Page;
+    use Aura\Web\Context;
+    use Aura\Web\Response;
+    
+    $params = [
+        'action' => 'hello',
+        'format' => '.html',
+        'noun'   => 'world',
+    ];
+    
+    $page = new Page(new Context, new Response, $params);
+    
+    $response = $page->exec();
+    echo $response->getContent(); // "Hello, world!"
+
+
+The Response Transfer Object
+----------------------------
+
+To manipulate the response description, use the `$this->response` transfer object.  Some of the important methods are:
+
+- `setContent()`: sets the body content
+- `setHeader()`: sets a single header value
+- `setCookie()`: sets a single cookie
+- `setRedirect()`: sets a `Location:` header for redirect, with an optional status code and message (default is `'302 Found'`.)
+- `setStatusCode()` and `setStatusText()`: sets the HTTP status code and message
+
+For more information, please review the [Response][] class.
+
+
+The Context Object
+------------------
+
+You can discover the web request environment using the `$this->context` object.  Some of the important methods are:
+
+- `getQuery()`: gets a $_GET value
+- `getPost()`: gets a $_POST value
+- `getFiles()`: gets a $_FILES value
+- `getInput()`: gets the raw `php://input` value
+- `getJsonInput()`: gets the raw `php://input` value and `json_decode()` it
+- `getAccept()`: gets the Accept headers, ordered by weight
+- `isGet()`, `isPut()`, `isXhr()`, etc.: Tells if the request method was `GET`, `PUT`, an `Xml-HTTP-Request`, etc.
+
+For more information, please review the [Context][] class.
+
+An example "search" action using a "terms" query string parameter might look like this:
+
+    <?php
+    protected function actionSearch()
+    {
+        $terms = $this->context->getQuery('terms');
+        if ($terms) {
+            // ... now search a database ...
+        }
+    }
+
+Given a URI with the query string `'?terms=foo+bar+baz'`, the `$terms` variable would be `'foo bar baz'`.  If there was no `'terms'` item in the query string, `$terms` would be null.
+
+
+Data and Rendering
+------------------
+
+Usually, you will not want to manipulate the `Response` content directly in the action method. It is almost always the case that you will collect data inside the action method, then hand off to a rendering system to present that data.
+
+The `AbstractPage` provides a `$data` property and a `render()` method for just that purpose.  Here is a naive example of how to use them:
+
+    <?php
+    namespace Vendor\Package\Web;
+    use Aura\Web\AbstractPage;
+    class Page extends AbstractPage
+    {
+        protected function actionHello($noun = null)
+        {
+            $this->data->noun = $noun;
+        }
+        
+        protected function render()
+        {
+            // escape all data
+            $data = [];
+            foreach ((array) $this->data as $key => $val) {
+                $data[$key] = htmlspecialchars($val, ENT_QUOTES, 'UTF-8');
+            }
+            
+            // switch between actions
+            switch ($this->getAction()) {
+            case 'hello':
+                $success = true;
+                $content = "Hello, {$data['noun']}!";
+                break;
+            default:
+                $this->response->setStatusCode('404');
+                $success = false;
+                $content = 'Action not found.';
+                break;
+            }
+            
+            // convert to a JSON response?
+            if ($this->getFormat() == '.json') {
+                $this->response->setContentType('application/json');
+                $content = json_encode([
+                    'success' => $success,
+                    'content' => $content,
+                ]);
+            }
+            
+            $this->response->setContent($content);
+        }
+    }
+
+The `render()` method is empty by default.  This allows you to add in whatever presentation logic you want, from simply `json_encode()`-ing `$this->data`, to using a complex two-step or transform view.  The [Aura.View][] package provides a powerful view system suitable for use here.
+
+* * *
+
+[Aura.Di]:      https://github.com/auraphp/Aura.Di
+[Aura.Router]:  https://github.com/auraphp/Aura.Router 
+[Aura.Http]:    https://github.com/auraphp/Aura.Http 
+[Aura.View]:    https://github.com/auraphp/Aura.View 
+[Response]:     https://github.com/auraphp/Aura.Web/blob/master/src/Aura/Web/Response.php
+[Context]:      https://github.com/auraphp/Aura.Web/blob/master/src/Aura/Web/Context.php
