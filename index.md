@@ -1,5 +1,5 @@
 ---
-title: Aura for PHP: Web Page Controllers
+title: Aura for PHP -- Web Page Controllers
 layout: default
 ---
 
